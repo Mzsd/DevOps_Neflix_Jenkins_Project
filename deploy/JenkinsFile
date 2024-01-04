@@ -1,0 +1,94 @@
+def InstanceId = ''
+def publicIp = ''
+
+
+pipeline  {
+
+  agent any
+
+  environment {
+      AWS_CREDENTIALS = '64dc9d40-3fba-4dbf-b46d-2f715607e938'
+      INSTANCE_NAME_PREFIX = "myflix_webserver_"
+      SSH_KEY_FILE = "devops_ssh"
+      GITHUB_REPO = 'https://github.com/Mzsd/DevOps_Neflix_Project.git'
+  }
+
+  stages {
+
+    stage('Create EC2 Instance')  {
+      
+      steps {
+        script {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
+            try {
+              def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
+              
+              sh 'export AWS_DEFAULT_REGION=eu-east-1'
+
+              instanceId = sh(
+                script: """aws ec2 run-instances \
+                          --image-id ami-041349811d2fa3f3a \
+                          --count 1 \
+                          --instance-type t2.micro \
+                          --key-name myflix-key \
+                          --security-group-ids sg-0c2c4fb89d89deb9a \
+                          --subnet-id subnet-0022cfaef95fe0f02 \
+                          --tag-specifications 'ResourceType=instance, Tags=[
+                            {
+                              Key=Name, 
+                              Value=${instance_name}
+                            }, 
+                            {
+                              Key=version,
+                              Value=${params.version}
+                            }
+                            ] \
+                          
+                          --associate-public-ip-address \
+                          --query 'Instances[0].InstanceId' \
+                          --output text""", 
+                returnStdout: true
+              ).trim()
+
+              sh "git clone -b ${params.version} ${env.GITHUB_REPO}"
+
+              sh "aws ec2 wait instance-running --instance-ids ${instanceId}"
+              sh "aws ec2 modify-instance-attribute --instance-id ${instanceId} --no-disablle-api-temination"
+
+              publicIp = sh(
+                script: """aws ec2 describe-instances \
+                --instance-ids ${instanceId} \
+                --query 'Reservations[0].Instances[0].PublicIpAddress' \
+                --output text""",
+                returnStdout: true
+              ).trim()
+
+              sleep 20
+            } catch (Exception e) {
+              if (instanceId && instanceId != 'None') {
+                sh "aws ec2 terminate-instances --instance-ids ${instanceId}"
+              }
+              throw e
+            }
+          }
+        }
+      }
+    }
+  }
+
+  post  {
+    aborted {
+      script  {
+        if (instanceId && instanceId != 'None') {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
+            sh "aws ec2 terminate-instances --instance-ids ${instanceId}"
+            sh "aws ec2 wait instance-terminated --instance-ids ${instanceId}"
+            echo "EC2 instance ${instanceId} terminated due to build cancellation."
+          }
+        } else  {
+          echo "Build cancelled, but no EC2 instance was created to terminate."
+        }
+      }
+    }
+  }
+}
