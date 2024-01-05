@@ -8,6 +8,7 @@ pipeline  {
 
   environment {
       AWS_CREDENTIALS = '64dc9d40-3fba-4dbf-b46d-2f715607e938'
+      AWS_DEFAULT_REGION = 'us-east-1'
       INSTANCE_NAME_PREFIX = "myflix_webserver_"
       SSH_KEY_FILE = "devops_ssh"
       GITHUB_REPO = 'https://github.com/Mzsd/DevOps_Neflix_Project.git'
@@ -19,17 +20,13 @@ pipeline  {
       
       steps {
         script {
-          // withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}", defaultRegion: 'us-east-1']]) {
-            withAwsCli(
-              credentialsId: "${env.AWS_CREDENTIALS}",
-              defaultRegion: 'us-east-1'
-            ) {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
             try {
               def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
               
-              sh "export AWS_DEFAULT_REGION=eu-east-1"
+              // sh "export AWS_DEFAULT_REGION=eu-east-1"
 
-              sh 'echo "$AWS_DEFAULT_REGION"'
+              sh "echo \$AWS_DEFAULT_REGION"
               
               InstanceId = sh(
                 script: """aws ec2 run-instances \
