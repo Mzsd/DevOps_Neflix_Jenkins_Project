@@ -23,7 +23,8 @@ pipeline  {
             try {
               def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
               
-              sh "export AWS_DEFAULT_REGION=eu-east-1"
+              sh "export AWS_REGION=eu-east-1"
+
 
               instanceId = sh(
                 script: """aws ec2 run-instances \
