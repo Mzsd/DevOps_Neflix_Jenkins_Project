@@ -24,6 +24,13 @@ pipeline  {
             try {
               def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
               
+              // InstanceId = sh(
+              //   script: """aws ec2 run-instances \
+              //             --image-id ami-041349811d2fa3f3a \
+              //             --key-name myflix-key
+              //             --instance-type t2.micro 
+              //             --network-interfaces '[ { "DeviceIndex": 0, "Groups": ["sg-123456"], "SubnetId": "subnet-123456", "DeleteOnTermination": true, "AssociatePublicIpAddress": true } ]'"""
+
               InstanceId = sh(
                 script: """aws ec2 run-instances \
                           --image-id ami-041349811d2fa3f3a \
@@ -32,17 +39,7 @@ pipeline  {
                           --key-name myflix-key \
                           --security-group-ids sg-0c2c4fb89d89deb9a \
                           --subnet-id subnet-0022cfaef95fe0f02 \
-                          --tag-specifications 'ResourceType=instance, Tags=[
-                            {
-                              Key=Name, 
-                              Value=${instance_name}
-                            }, 
-                            {
-                              Key=version,
-                              Value=${params.version}
-                            }
-                            ]' \
-                          
+                          --tag-specifications 'ResourceType=instance, Tags=[{Key=Name, Value=${instance_name}}, {Key=version, Value=${params.version}}]' \
                           --associate-public-ip-address \
                           --query 'Instances[0].InstanceId' \
                           --output text""", 
