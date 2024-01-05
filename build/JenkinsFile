@@ -7,11 +7,13 @@ pipeline  {
   agent any
 
   environment {
+      GIT_CREDENTIALS = "6b4c12e1-9424-48b3-ab99-63569aae8280"
+      GITHUB_REPO = 'https://github.com/Mzsd/DevOps_Neflix_Project.git'
       AWS_CREDENTIALS = '64dc9d40-3fba-4dbf-b46d-2f715607e938'
       AWS_DEFAULT_REGION = 'us-east-1'
-      INSTANCE_NAME_PREFIX = "myflix_webserver_"
+      INSTANCE_NAME_PREFIX = "myflix_webserver"
+      SSH_KEY_FILE_NAME = "myflix-key.pem"
       SSH_KEY_FILE = "devops_ssh"
-      GITHUB_REPO = 'https://github.com/Mzsd/DevOps_Neflix_Project.git'
   }
 
   stages {
@@ -22,21 +24,14 @@ pipeline  {
         script {
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
             try {
-              def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
-              
-              // InstanceId = sh(
-              //   script: """aws ec2 run-instances \
-              //             --image-id ami-041349811d2fa3f3a \
-              //             --key-name myflix-key
-              //             --instance-type t2.micro 
-              //             --network-interfaces '[ { "DeviceIndex": 0, "Groups": ["sg-123456"], "SubnetId": "subnet-123456", "DeleteOnTermination": true, "AssociatePublicIpAddress": true } ]'"""
+              def instance_name = "${env.INSTANCE_NAME_PREFIX}_${env.BUILD_NUMBER}"
 
               InstanceId = sh(
                 script: """aws ec2 run-instances \
                           --image-id ami-041349811d2fa3f3a \
                           --count 1 \
                           --instance-type t2.micro \
-                          --key-name myflix-key \
+                          --key-name ${env.SSH_KEY_FILE} \
                           --security-group-ids sg-0c2c4fb89d89deb9a \
                           --subnet-id subnet-0022cfaef95fe0f02 \
                           --tag-specifications 'ResourceType=instance, Tags=[{Key=Name, Value=${instance_name}}, {Key=version, Value=${params.version}}]' \
@@ -46,7 +41,9 @@ pipeline  {
                 returnStdout: true
               ).trim()
 
-              sh "git clone -b ${params.version} ${env.GITHUB_REPO}"
+              git credentialsId: ${GIT_CREDENTIALS}, url: ${env.GITHUB_REPO}
+
+              sh ""
 
               sh "aws ec2 wait instance-running --instance-ids ${InstanceId}"
               sh "aws ec2 modify-instance-attribute --instance-id ${InstanceId} --no-disable-api-temination"
@@ -59,7 +56,15 @@ pipeline  {
                 returnStdout: true
               ).trim()
 
-              sleep 20
+              // Get the SSH key from Jenkins credentials
+              def sshKeyContent = credentials(SSH_KEY_FILE)
+
+              // Write the SSH key to a temporary file
+              def sshKeyFile = writeTmpFile("ssh_key", sshKeyContent)
+
+              // Clone Git repo on the EC2 instance using the SSH key
+              sh "aws ec2 ssh -i ${sshKeyFile} ec2-user@${publicIp} 'git clone -b ${params.version} ${env.GITHUB_REPO}'"
+
             } catch (Exception e) {
               if (InstanceId && InstanceId != 'None') {
                 sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
@@ -87,4 +92,12 @@ pipeline  {
       }
     }
   }
+}
+
+// Function to write content to a temporary file
+def writeTmpFile(name, content) {
+    def tmpFile = File.createTempFile(name, '')
+    tmpFile.text = content
+    tmpFile.setExecutable(true, false)
+    return tmpFile.toString()
 }
