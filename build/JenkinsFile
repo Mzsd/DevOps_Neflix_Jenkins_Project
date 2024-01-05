@@ -24,8 +24,7 @@ pipeline  {
               def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
               
               sh "export AWS_DEFAULT_REGION=eu-east-1"
-              sh "aws configure"
-
+              echo sh 'aws ec2 describe-instances'
               instanceId = sh(
                 script: """aws ec2 run-instances \
                           --image-id ami-041349811d2fa3f3a \
