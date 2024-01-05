@@ -53,7 +53,7 @@ pipeline  {
               sh "git clone -b ${params.version} ${env.GITHUB_REPO}"
 
               sh "aws ec2 wait instance-running --instance-ids ${instanceId}"
-              sh "aws ec2 modify-instance-attribute --instance-id ${instanceId} --no-disablle-api-temination"
+              sh "aws ec2 modify-instance-attribute --instance-id ${instanceId} --no-disable-api-temination"
 
               publicIp = sh(
                 script: """aws ec2 describe-instances \
