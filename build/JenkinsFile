@@ -42,7 +42,7 @@ pipeline  {
                               Key=version,
                               Value=${params.version}
                             }
-                            ] \
+                            ]' \
                           
                           --associate-public-ip-address \
                           --query 'Instances[0].InstanceId' \
