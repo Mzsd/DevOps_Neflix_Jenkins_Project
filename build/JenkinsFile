@@ -23,10 +23,6 @@ pipeline  {
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
             try {
               def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
-
-              sh 'echo "AWS Access Key ID: ${AWS_ACCESS_KEY_ID}"'
-              sh 'echo "AWS Secret Access Key: ${AWS_SECRET_ACCESS_KEY}"'
-              sh "echo \$AWS_DEFAULT_REGION"
               
               InstanceId = sh(
                 script: """aws ec2 run-instances \
