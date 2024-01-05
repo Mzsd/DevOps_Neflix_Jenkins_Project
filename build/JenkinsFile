@@ -19,7 +19,11 @@ pipeline  {
       
       steps {
         script {
-          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}", defaultRegion: 'us-east-1']]) {
+          // withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}", defaultRegion: 'us-east-1']]) {
+            withAwsCli(
+              credentialsId: "${env.AWS_CREDENTIALS}",
+              defaultRegion: 'us-east-1'
+            ) {
             try {
               def instance_name = "${env.INSTANCE_NAME_PREFIX}${env.BUILD_NUMBER}"
               
