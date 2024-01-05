@@ -25,7 +25,7 @@ pipeline  {
               
               sh "export AWS_DEFAULT_REGION=eu-east-1"
               echo sh 'aws ec2 describe-instances'
-              instanceId = sh(
+              InstanceId = sh(
                 script: """aws ec2 run-instances \
                           --image-id ami-041349811d2fa3f3a \
                           --count 1 \
@@ -52,12 +52,12 @@ pipeline  {
 
               sh "git clone -b ${params.version} ${env.GITHUB_REPO}"
 
-              sh "aws ec2 wait instance-running --instance-ids ${instanceId}"
-              sh "aws ec2 modify-instance-attribute --instance-id ${instanceId} --no-disable-api-temination"
+              sh "aws ec2 wait instance-running --instance-ids ${InstanceId}"
+              sh "aws ec2 modify-instance-attribute --instance-id ${InstanceId} --no-disable-api-temination"
 
               publicIp = sh(
                 script: """aws ec2 describe-instances \
-                --instance-ids ${instanceId} \
+                --instance-ids ${InstanceId} \
                 --query 'Reservations[0].Instances[0].PublicIpAddress' \
                 --output text""",
                 returnStdout: true
@@ -65,8 +65,8 @@ pipeline  {
 
               sleep 20
             } catch (Exception e) {
-              if (instanceId && instanceId != 'None') {
-                sh "aws ec2 terminate-instances --instance-ids ${instanceId}"
+              if (InstanceId && InstanceId != 'None') {
+                sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
               }
               throw e
             }
@@ -79,11 +79,11 @@ pipeline  {
   post  {
     aborted {
       script  {
-        if (instanceId && instanceId != 'None') {
+        if (InstanceId && InstanceId != 'None') {
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
-            sh "aws ec2 terminate-instances --instance-ids ${instanceId}"
-            sh "aws ec2 wait instance-terminated --instance-ids ${instanceId}"
-            echo "EC2 instance ${instanceId} terminated due to build cancellation."
+            sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+            sh "aws ec2 wait instance-terminated --instance-ids ${InstanceId}"
+            echo "EC2 instance ${InstanceId} terminated due to build cancellation."
           }
         } else  {
           echo "Build cancelled, but no EC2 instance was created to terminate."
