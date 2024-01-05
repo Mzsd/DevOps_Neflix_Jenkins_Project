@@ -12,7 +12,7 @@ pipeline  {
       AWS_CREDENTIALS = '64dc9d40-3fba-4dbf-b46d-2f715607e938'
       AWS_DEFAULT_REGION = 'us-east-1'
       INSTANCE_NAME_PREFIX = "myflix_webserver"
-      SSH_KEY_FILE_NAME = "myflix-key.pem"
+      SSH_KEY_FILE_NAME = "myflix-key"
       SSH_KEY_FILE = "devops_ssh"
   }
 
@@ -31,7 +31,7 @@ pipeline  {
                           --image-id ami-041349811d2fa3f3a \
                           --count 1 \
                           --instance-type t2.micro \
-                          --key-name ${env.SSH_KEY_FILE} \
+                          --key-name ${env.SSH_KEY_FILE_NAME} \
                           --security-group-ids sg-0c2c4fb89d89deb9a \
                           --subnet-id subnet-0022cfaef95fe0f02 \
                           --tag-specifications 'ResourceType=instance, Tags=[{Key=Name, Value=${instance_name}}, {Key=version, Value=${params.version}}]' \
