@@ -43,8 +43,6 @@ pipeline  {
 
               git credentialsId: ${GIT_CREDENTIALS}, url: ${env.GITHUB_REPO}
 
-              sh ""
-
               sh "aws ec2 wait instance-running --instance-ids ${InstanceId}"
               sh "aws ec2 modify-instance-attribute --instance-id ${InstanceId} --no-disable-api-temination"
 
