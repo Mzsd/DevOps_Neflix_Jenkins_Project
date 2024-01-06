@@ -57,8 +57,14 @@ pipeline  {
 
               sshagent (credentials: [SSH_KEY_FILE]) {
                   // Clone Git repo on the EC2 instance using the SSH key
-                sh "aws ec2 ssh ec2-user@${publicIp}"
-                sh "git clone -b ${params.version} ${env.GITHUB_REPO}"
+                def remote = [:];
+                remote.name = instance_name;
+                remote.host = publicIp;
+                remote.user = 'ec2-user'; 
+                remote.identifyFile = sshKey;
+                remote.allowAnyHosts = false;
+
+                sshCommand remote: remote, command: "git clone -b ${params.version} ${env.GITHUB_REPO}"
               }
             } catch (Exception e) {
               if (InstanceId && InstanceId != 'None') {
