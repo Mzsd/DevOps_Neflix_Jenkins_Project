@@ -62,7 +62,7 @@ pipeline  {
                 remote.host = publicIp;
                 remote.user = 'ec2-user'; 
                 remote.identifyFile = SSH_KEY_FILE;
-                remote.allowAnyHosts = false;
+                remote.allowAnyHosts = true;
 
                 sshCommand remote: remote, command: "git clone -b ${params.version} ${env.GITHUB_REPO}"
               }
