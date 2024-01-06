@@ -45,7 +45,7 @@ pipeline  {
               ).trim()
 
               sh "aws ec2 wait instance-running --instance-ids ${InstanceId}"
-              sh "aws ec2 modify-instance-attribute --instance-id ${InstanceId} --no-disable-api-temination"
+              sh "aws ec2 modify-instance-attribute --instance-id ${InstanceId} --no-disable-api-termination"
 
               publicIp = sh(
                 script: """aws ec2 describe-instances \
