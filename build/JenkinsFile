@@ -55,19 +55,12 @@ pipeline  {
                 returnStdout: true
               ).trim()
 
-              sleep 10
-
-              sshagent (credentials: [SSH_KEY_FILE]) {
-                  // Clone Git repo on the EC2 instance using the SSH key
-                def remote = [:];
-                remote.name = instance_name;
-                remote.host = publicIp;
-                remote.user = 'ec2-user'; 
-                remote.identifyFile = SSH_KEY_FILE;
-                remote.allowAnyHosts = true;
-
-                sshCommand remote: remote, command: 'ech "Inside EC2"'
-                sshCommand remote: remote, command: "git clone -b ${params.version} ${env.GITHUB_REPO}"
+              // sleep 10
+              sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
+                sh "ssh ec2-user@${publicIp}"
+                sh 'echo "Hello World"'
+                // sshCommand remote: remote, command: 'echo "Inside EC2"'
+                // sshCommand remote: remote, command: "git clone -b ${params.version} ${env.GITHUB_REPO}"
               }
             } catch (Exception e) {
               // if (InstanceId && InstanceId != 'None') {
