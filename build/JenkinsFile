@@ -55,15 +55,11 @@ pipeline  {
                 returnStdout: true
               ).trim()
 
-              // Get the SSH key from Jenkins credentials
-              def sshKeyContent = credentials(SSH_KEY_FILE)
+              sshagent (credentials: [SSH_KEY_FILE]) {
+                  // Clone Git repo on the EC2 instance using the SSH key
+                sh "aws ec2 ssh ec2-user@${publicIp} 'git clone -b ${params.version} ${env.GITHUB_REPO}'"
 
-              // Write the SSH key to a temporary file
-              def sshKeyFile = writeTmpFile("ssh_key", sshKeyContent)
-
-              // Clone Git repo on the EC2 instance using the SSH key
-              sh "aws ec2 ssh -i ${sshKeyFile} ec2-user@${publicIp} 'git clone -b ${params.version} ${env.GITHUB_REPO}'"
-
+              }
             } catch (Exception e) {
               if (InstanceId && InstanceId != 'None') {
                 sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
@@ -91,12 +87,4 @@ pipeline  {
       }
     }
   }
-}
-
-// Function to write content to a temporary file
-def writeTmpFile(name, content) {
-    def tmpFile = File.createTempFile(name, '')
-    tmpFile.text = content
-    tmpFile.setExecutable(true, false)
-    return tmpFile.toString()
 }
