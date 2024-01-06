@@ -22,6 +22,9 @@ pipeline  {
       
       steps {
         script {
+
+          git credentialsId: GIT_CREDENTIALS, url: env.GITHUB_REPO
+
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
             try {
               def instance_name = "${env.INSTANCE_NAME_PREFIX}_${env.BUILD_NUMBER}"
@@ -40,8 +43,6 @@ pipeline  {
                           --output text""", 
                 returnStdout: true
               ).trim()
-
-              git credentialsId: ${GIT_CREDENTIALS}, url: ${env.GITHUB_REPO}
 
               sh "aws ec2 wait instance-running --instance-ids ${InstanceId}"
               sh "aws ec2 modify-instance-attribute --instance-id ${InstanceId} --no-disable-api-temination"
