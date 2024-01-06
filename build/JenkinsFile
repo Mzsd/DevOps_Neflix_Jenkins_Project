@@ -55,6 +55,8 @@ pipeline  {
                 returnStdout: true
               ).trim()
 
+              sleep 10
+
               sshagent (credentials: [SSH_KEY_FILE]) {
                   // Clone Git repo on the EC2 instance using the SSH key
                 def remote = [:];
