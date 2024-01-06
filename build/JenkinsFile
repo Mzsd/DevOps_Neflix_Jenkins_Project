@@ -66,7 +66,7 @@ pipeline  {
                 remote.identifyFile = SSH_KEY_FILE;
                 remote.allowAnyHosts = true;
 
-                sshCommand remote: remote, command: "Inside EC2"
+                sshCommand remote: remote, command: 'ech "Inside EC2"'
                 sshCommand remote: remote, command: "git clone -b ${params.version} ${env.GITHUB_REPO}"
               }
             } catch (Exception e) {
