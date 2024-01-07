@@ -90,9 +90,7 @@ pipeline  {
                           sudo apt-get install -y git &&
                           mkdir webapp &&
                           git clone -b ${params.version} https://${GITHUB_TOKEN}${env.GITHUB_REPO_PARTIAL} &&
-                          
                           echo "Installing Docker" &&
-                          
                           sudo apt-get update &&
                           sudo apt-get install ca-certificates curl gnupg &&
                           sudo install -m 0755 -d /etc/apt/keyrings &&
