@@ -92,7 +92,7 @@ pipeline  {
                           git clone -b ${params.version} https://${GITHUB_TOKEN}${env.GITHUB_REPO_PARTIAL}
                       '
                   """
-
+              }
             }
           } catch (Exception e) {
             // if (InstanceId && InstanceId != 'None') {
@@ -103,7 +103,6 @@ pipeline  {
         }
       }
     }
-
   }
 
   // post  {
