@@ -7,8 +7,8 @@ pipeline  {
   agent any
 
   environment {
-      GIT_CREDENTIALS = "6b4c12e1-9424-48b3-ab99-63569aae8280"
-      GITHUB_REPO = 'https://github.com/Mzsd/DevOps_Neflix_Project.git'
+      GIT_CREDENTIALS = "gitdevops"
+      GITHUB_REPO_PARTIAL = '@github.com/Mzsd/DevOps_Neflix_Project.git'
       AWS_CREDENTIALS = '64dc9d40-3fba-4dbf-b46d-2f715607e938'
       AWS_DEFAULT_REGION = 'us-east-1'
       INSTANCE_NAME_PREFIX = "myflix_webserver"
@@ -22,8 +22,6 @@ pipeline  {
       
       steps {
         script {
-
-          git credentialsId: GIT_CREDENTIALS, url: env.GITHUB_REPO
 
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
             try {
@@ -55,21 +53,17 @@ pipeline  {
                 returnStdout: true
               ).trim()
 
-              // sleep 10
-              sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
+              // sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
 
-                sh  """
-                        ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
-                            sudo apt-get update &&
-                            sudo apt-get install -y git &&
-                            mkdir webapp &&
-                            git clone -b ${params.version} ${env.GITHUB_REPO}
-                        '
-                    """
-
-                // sshCommand remote: remote, command: 'echo "Inside EC2"'
-                // sshCommand remote: remote, command: "git clone -b ${params.version} ${env.GITHUB_REPO}"
-              }
+              //   sh  """
+              //           ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
+              //               sudo apt-get update &&
+              //               sudo apt-get install -y git &&
+              //               mkdir webapp &&
+              //               git clone -b ${params.version} ${env.GITHUB_REPO}
+              //           '
+              //       """
+              // }
             } catch (Exception e) {
               // if (InstanceId && InstanceId != 'None') {
               //   sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
@@ -80,6 +74,36 @@ pipeline  {
         }
       }
     }
+
+    stage('Deploy Code')  {
+      
+      steps {
+        script {
+          try {
+
+            sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
+              withCredentials([string(credentialsId: "${GIT_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
+
+              sh  """
+                      ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
+                          sudo apt-get update &&
+                          sudo apt-get install -y git &&
+                          mkdir webapp &&
+                          git clone -b ${params.version} https://${GITHUB_TOKEN}${env.GITHUB_REPO_PARTIAL}
+                      '
+                  """
+
+            }
+          } catch (Exception e) {
+            // if (InstanceId && InstanceId != 'None') {
+            //   sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+            // }
+            throw e
+          }
+        }
+      }
+    }
+
   }
 
   // post  {
