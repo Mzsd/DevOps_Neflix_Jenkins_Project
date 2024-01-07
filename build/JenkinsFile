@@ -57,8 +57,14 @@ pipeline  {
 
               // sleep 10
               sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
-                sh "ssh ec2-user@${publicIp}"
-                sh 'echo "Hello World"'
+
+                sh  """
+                        ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} '
+                            sudo apt-get update &&
+                            sudo apt-get install -y git
+                        '
+                    """
+
                 // sshCommand remote: remote, command: 'echo "Inside EC2"'
                 // sshCommand remote: remote, command: "git clone -b ${params.version} ${env.GITHUB_REPO}"
               }
