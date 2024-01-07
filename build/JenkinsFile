@@ -13,7 +13,7 @@ pipeline  {
       AWS_DEFAULT_REGION = 'us-east-1'
       INSTANCE_NAME_PREFIX = "myflix_webserver"
       SSH_KEY_FILE_NAME = "myflix-key"
-      SSH_KEY_FILE = "devops_ssh"
+      SSH_KEY_FILE = "devops_ssh_creds"
   }
 
   stages {
