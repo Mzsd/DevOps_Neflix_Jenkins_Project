@@ -59,7 +59,7 @@ pipeline  {
               sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
 
                 sh  """
-                        ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} '
+                        ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
                             sudo apt-get update &&
                             sudo apt-get install -y git
                         '
