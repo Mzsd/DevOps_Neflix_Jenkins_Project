@@ -61,7 +61,9 @@ pipeline  {
                 sh  """
                         ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
                             sudo apt-get update &&
-                            sudo apt-get install -y git
+                            sudo apt-get install -y git &&
+                            mkdir webapp &&
+                            git clone -b ${params.version} ${env.GITHUB_REPO}
                         '
                     """
 
