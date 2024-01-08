@@ -7,13 +7,15 @@ pipeline  {
   agent any
 
   environment {
-      GIT_CREDENTIALS = "gitdevops"
-      GITHUB_REPO_PARTIAL = '@github.com/Mzsd/DevOps_Neflix_Project.git'
-      AWS_CREDENTIALS = '64dc9d40-3fba-4dbf-b46d-2f715607e938'
-      AWS_DEFAULT_REGION = 'us-east-1'
-      INSTANCE_NAME_PREFIX = "myflix_webserver"
-      SSH_KEY_FILE_NAME = "myflix-key"
-      SSH_KEY_FILE = "devops_ssh_creds"
+    ENV_FILENAME = ".env.myflix"
+    GIT_FOLDER_NAME = "DevOps_Neflix_Project"
+    GIT_CREDENTIALS = "gitdevops"
+    GITHUB_REPO_PARTIAL = '@github.com/Mzsd/DevOps_Neflix_Project.git'
+    AWS_CREDENTIALS = '64dc9d40-3fba-4dbf-b46d-2f715607e938'
+    AWS_DEFAULT_REGION = 'us-east-1'
+    INSTANCE_NAME_PREFIX = "myflix_webserver"
+    SSH_KEY_FILE_NAME = "myflix-key"
+    SSH_KEY_FILE = "devops_ssh_creds"
   }
 
   stages {
@@ -73,6 +75,7 @@ pipeline  {
                 withCredentials([string(credentialsId: "${GIT_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
 
                 sh  """
+                        scp -o StrictHostKeyChecking=no /var/jenkins_home/workspace/secrets/${env.ENV_FILENAME} ubuntu@${publicIp}:/${GIT_FOLDER_NAME}/.env
                         ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
                             sudo apt-get update &&
                             sudo apt-get install -y git &&
@@ -95,8 +98,10 @@ pipeline  {
                             sudo apt-get update &&
                             sudo apt-get install docker-compose-plugin &&
                             cd Dev* &&
+
                             docker-compose build --no-cache &&
-                            docker-compose up
+                            docker-compose up &&
+
                         '
                     """
                 }
