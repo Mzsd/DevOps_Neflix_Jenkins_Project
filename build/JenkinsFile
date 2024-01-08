@@ -103,7 +103,7 @@ pipeline  {
                           echo "Docker Compose Installed!"
 
                           mv ${env.ENV_FILENAME} ${env.GIT_FOLDER_NAME}/.env &&
-                          sudo apt install docker.io &&
+                          sudo apt -y install docker.io &&
                           sudo usermod -aG docker ubuntu
                       '
                   """
