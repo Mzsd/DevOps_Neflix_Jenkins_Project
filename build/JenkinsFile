@@ -52,22 +52,10 @@ pipeline  {
                 --output text""",
                 returnStdout: true
               ).trim()
-
-              // sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
-
-              //   sh  """
-              //           ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
-              //               sudo apt-get update &&
-              //               sudo apt-get install -y git &&
-              //               mkdir webapp &&
-              //               git clone -b ${params.version} ${env.GITHUB_REPO}
-              //           '
-              //       """
-              // }
             } catch (Exception e) {
-              // if (InstanceId && InstanceId != 'None') {
-              //   sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
-              // }
+              if (InstanceId && InstanceId != 'None') {
+                sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+              }
               throw e
             }
           }
@@ -100,9 +88,13 @@ pipeline  {
                             "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
                             \$(. /etc/os-release && echo "\$VERSION_CODENAME") stable" | \
                             sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
+
+                          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-\$(uname -s)-\$(uname -m)" -o /usr/local/bin/docker-compose
+                          sudo chmod +x /usr/local/bin/docker-compose &&
                           
                           sudo apt-get update &&
-                          
+                          sudo apt-get install docker-compose-plugin
+
                           docker-compose build --no-cache &&
                           docker-compose up
                       '
@@ -110,9 +102,9 @@ pipeline  {
               }
             }
           } catch (Exception e) {
-            // if (InstanceId && InstanceId != 'None') {
-            //   sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
-            // }
+            if (InstanceId && InstanceId != 'None') {
+              sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+            }
             throw e
           }
         }
@@ -120,19 +112,19 @@ pipeline  {
     }
   }
 
-  // post  {
-  //   aborted {
-  //     script  {
-  //       if (InstanceId && InstanceId != 'None') {
-  //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
-  //           sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
-  //           sh "aws ec2 wait instance-terminated --instance-ids ${InstanceId}"
-  //           echo "EC2 instance ${InstanceId} terminated due to build cancellation."
-  //         }
-  //       } else  {
-  //         echo "Build cancelled, but no EC2 instance was created to terminate."
-  //       }
-  //     }
-  //   }
-  // }
+  post  {
+    aborted {
+      script  {
+        if (InstanceId && InstanceId != 'None') {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
+            sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+            sh "aws ec2 wait instance-terminated --instance-ids ${InstanceId}"
+            echo "EC2 instance ${InstanceId} terminated due to build cancellation."
+          }
+        } else  {
+          echo "Build cancelled, but no EC2 instance was created to terminate."
+        }
+      }
+    }
+  }
 }
