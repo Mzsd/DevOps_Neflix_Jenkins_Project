@@ -110,6 +110,7 @@ pipeline  {
                   
                   sh """
                       ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
+                        cd Dev* &&
                         docker-compose build --no-cache &&
                         docker-compose up
                       '
