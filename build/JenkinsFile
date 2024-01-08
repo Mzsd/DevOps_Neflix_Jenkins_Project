@@ -53,10 +53,10 @@ pipeline  {
                 returnStdout: true
               ).trim()
             } catch (Exception e) {
-              if (InstanceId && InstanceId != 'None') {
-                sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
-              }
-              throw e
+              // if (InstanceId && InstanceId != 'None') {
+              //   sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+              // }
+              // throw e
             }
           }
         }
@@ -102,9 +102,9 @@ pipeline  {
                 }
               }
             } catch (Exception e) {
-              if (InstanceId && InstanceId != 'None') {
-                sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
-              }
+              // if (InstanceId && InstanceId != 'None') {
+              //   sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+              // }
               throw e
             }
           }
@@ -113,19 +113,19 @@ pipeline  {
     }
   }
 
-  post  {
-    aborted {
-      script  {
-        if (InstanceId && InstanceId != 'None') {
-          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
-            sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
-            sh "aws ec2 wait instance-terminated --instance-ids ${InstanceId}"
-            echo "EC2 instance ${InstanceId} terminated due to build cancellation."
-          }
-        } else  {
-          echo "Build cancelled, but no EC2 instance was created to terminate."
-        }
-      }
-    }
-  }
-}
+//   post  {
+//     aborted {
+//       script  {
+//         if (InstanceId && InstanceId != 'None') {
+//           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${env.AWS_CREDENTIALS}"]]) {
+//             sh "aws ec2 terminate-instances --instance-ids ${InstanceId}"
+//             sh "aws ec2 wait instance-terminated --instance-ids ${InstanceId}"
+//             echo "EC2 instance ${InstanceId} terminated due to build cancellation."
+//           }
+//         } else  {
+//           echo "Build cancelled, but no EC2 instance was created to terminate."
+//         }
+//       }
+//     }
+//   }
+// }
