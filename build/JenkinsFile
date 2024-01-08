@@ -110,7 +110,8 @@ pipeline  {
                   
                   sh """
                       ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
-                        cd Dev* &&
+                        chmod -R 777 ${env.GIT_FOLDER_NAME}
+                        cd ${env.GIT_FOLDER_NAME} &&
                         docker-compose build --no-cache &&
                         docker-compose up
                       '
