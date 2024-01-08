@@ -75,7 +75,7 @@ pipeline  {
                 withCredentials([string(credentialsId: "${GIT_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
 
                 sh  """
-                        scp -o StrictHostKeyChecking=no /var/jenkins_home/workspace/secrets/${env.ENV_FILENAME} ubuntu@${publicIp}:/${GIT_FOLDER_NAME}/ &&
+                        scp -r -o StrictHostKeyChecking=no /var/jenkins_home/workspace/secrets/${env.ENV_FILENAME} ubuntu@${publicIp}:/${GIT_FOLDER_NAME}/ &&
                         ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
                             sudo apt-get update &&
                             sudo apt-get install -y git &&
