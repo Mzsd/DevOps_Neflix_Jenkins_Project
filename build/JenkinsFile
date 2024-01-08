@@ -74,40 +74,45 @@ pipeline  {
               sshagent (credentials: [SSH_KEY_FILE], ignoreMissing: true) {
                 withCredentials([string(credentialsId: "${GIT_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
 
-                sh  """
-                        scp -r -o StrictHostKeyChecking=no /var/jenkins_home/workspace/secrets/${env.ENV_FILENAME} ubuntu@${publicIp}:/home/ubuntu &&
-                        ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
-                            sudo apt-get update &&
-                            sudo apt-get install -y git &&
-                            mkdir webapp &&
-                            git clone -b ${params.version} https://${GITHUB_TOKEN}${env.GITHUB_REPO_PARTIAL} &&
-                            echo "Installing Docker" &&
-                            sudo apt-get install ca-certificates curl gnupg &&
-                            sudo install -m 0755 -d /etc/apt/keyrings &&
-                            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg &&
-                            sudo chmod a+r /etc/apt/keyrings/docker.gpg  &&
+                  sh  """
+                      scp -r -o StrictHostKeyChecking=no /var/jenkins_home/workspace/secrets/${env.ENV_FILENAME} ubuntu@${publicIp}:/home/ubuntu &&
+                      ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
+                          sudo apt-get update &&
+                          sudo apt-get install -y git &&
+                          mkdir webapp &&
+                          git clone -b ${params.version} https://${GITHUB_TOKEN}${env.GITHUB_REPO_PARTIAL} &&
+                          echo "Installing Docker" &&
+                          sudo apt-get install ca-certificates curl gnupg &&
+                          sudo install -m 0755 -d /etc/apt/keyrings &&
+                          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg &&
+                          sudo chmod a+r /etc/apt/keyrings/docker.gpg  &&
 
-                            echo \
-                              "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-                              \$(. /etc/os-release && echo "\$VERSION_CODENAME") stable" | \
-                              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
+                          echo \
+                            "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+                            \$(. /etc/os-release && echo "\$VERSION_CODENAME") stable" | \
+                            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
 
-                            sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-\$(uname -s)-\$(uname -m)" -o /usr/local/bin/docker-compose
-                            sudo chmod +x /usr/local/bin/docker-compose &&
-                            
-                            echo "Docker Installed!"
+                          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-\$(uname -s)-\$(uname -m)" -o /usr/local/bin/docker-compose
+                          sudo chmod +x /usr/local/bin/docker-compose &&
+                          
+                          echo "Docker Installed!"
 
-                            sudo apt-get update &&
-                            sudo apt-get install docker-compose-plugin &&
+                          sudo apt-get update &&
+                          sudo apt-get install docker-compose-plugin &&
 
-                            echo "Docker Compose Installed!"
+                          echo "Docker Compose Installed!"
 
-                            mv ${env.ENV_FILENAME} ${env.GIT_FOLDER_NAME}/.env &&
-                            cd Dev* &&
-                            docker-compose build --no-cache &&
-                            docker-compose up
-                        '
-                    """
+                          mv ${env.ENV_FILENAME} ${env.GIT_FOLDER_NAME}/.env &&
+                          sudo usermod -aG docker ubuntu
+                      '
+                  """
+                  
+                  sh """
+                      ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
+                        docker-compose build --no-cache &&
+                        docker-compose up
+                      '
+                  """
                 }
               }
             } catch (Exception e) {
