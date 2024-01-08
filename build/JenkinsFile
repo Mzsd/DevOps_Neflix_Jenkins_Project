@@ -75,7 +75,7 @@ pipeline  {
                 withCredentials([string(credentialsId: "${GIT_CREDENTIALS}", variable: 'GITHUB_TOKEN')]) {
 
                 sh  """
-                        scp -o StrictHostKeyChecking=no /var/jenkins_home/workspace/secrets/${env.ENV_FILENAME} ubuntu@${publicIp}:/${GIT_FOLDER_NAME}/.env
+                        scp -o StrictHostKeyChecking=no /var/jenkins_home/workspace/secrets/${env.ENV_FILENAME} ubuntu@${publicIp}:/${GIT_FOLDER_NAME}/.env &&
                         ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
                             sudo apt-get update &&
                             sudo apt-get install -y git &&
@@ -98,7 +98,7 @@ pipeline  {
                             sudo apt-get update &&
                             sudo apt-get install docker-compose-plugin &&
                             cd Dev* &&
-
+                            mv ${env.ENV_FILENAME} .env &&
                             docker-compose build --no-cache &&
                             docker-compose up &&
 
