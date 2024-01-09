@@ -113,8 +113,7 @@ pipeline  {
                         chmod -R 777 ${env.GIT_FOLDER_NAME}
                         cd ${env.GIT_FOLDER_NAME} &&
                         docker-compose build --no-cache &&
-                        docker-compose up -d
-                      '
+                        docker-compose up -d'
                   """
                 }
               }
