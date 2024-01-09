@@ -79,7 +79,6 @@ pipeline  {
                       ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} '
                           sudo apt-get update &&
                           sudo apt-get install -y git &&
-                          mkdir webapp &&
                           git clone -b ${params.version} https://${GITHUB_TOKEN}${env.GITHUB_REPO_PARTIAL} &&
                           echo "Installing Docker" &&
                           sudo apt-get install ca-certificates curl gnupg &&
